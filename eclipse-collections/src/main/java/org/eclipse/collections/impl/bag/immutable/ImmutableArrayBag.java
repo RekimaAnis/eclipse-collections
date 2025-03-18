@@ -282,19 +282,17 @@ public class ImmutableArrayBag<T>
         return ArrayIterate.getLast(this.keys);
     }
 
+    public boolean IsALegalLenght(){
+        return this.counts.length != 1 || this.counts[0] > 1;
+    }
+
     @Override
     public T getOnly()
     {
-        if (this.counts.length == 0)
+        if (this.IsALegalLenght())
         {
-            throw new IllegalStateException("Size must be 1 but was 0");
+            throw new IllegalStateException(this.count.length == 0 ? "Size must be 1 but was 0" : "Size must be 1 but was greater than 1");
         }
-
-        if (this.counts.length > 1 || this.counts[0] > 1)
-        {
-            throw new IllegalStateException("Size must be 1 but was greater than 1");
-        }
-
         return this.getFirst();
     }
 
@@ -332,6 +330,27 @@ public class ImmutableArrayBag<T>
         return this.flatCollect(function, HashBag.newBag()).toImmutable();
     }
 
+    public boolean IsAnOccurencesOf(Bag bag){
+        for (int i = 0; i < this.keys.length; i++)
+        {
+            if (this.counts[i] != bag.occurrencesOf(this.keys[i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public boolean IsABagObject(){
+        Bag<?> bag = (Bag<?>) other;
+        if (this.size() != bag.size())
+        {
+            return false;
+        }
+        return IsAnOccurencesOf(bag);
+    }
+
     @Override
     public boolean equals(Object other)
     {
@@ -343,19 +362,7 @@ public class ImmutableArrayBag<T>
         {
             return false;
         }
-        Bag<?> bag = (Bag<?>) other;
-        if (this.size() != bag.size())
-        {
-            return false;
-        }
-        for (int i = 0; i < this.keys.length; i++)
-        {
-            if (this.counts[i] != bag.occurrencesOf(this.keys[i]))
-            {
-                return false;
-            }
-        }
-        return true;
+        return IsABagObject();
     }
 
     @Override
