@@ -173,6 +173,13 @@ public class ImmutableArrayBag<T>
         return this.newArrayBagWith(element, elementIndex, distinctItemCount);
     }
 
+    /**
+     *
+     * @param element
+     * @param elementIndex
+     * @param distinctItemCount
+     * @return
+     */
     private ImmutableBag<T> newArrayBagWith(T element, int elementIndex, int distinctItemCount)
     {
         T[] newKeys = (T[]) new Object[distinctItemCount];
@@ -191,29 +198,48 @@ public class ImmutableArrayBag<T>
         return new ImmutableArrayBag<>(newKeys, newCounts);
     }
 
+    /**
+     *
+     * @param distinctItemCount
+     * @param newKeys
+     * @param newCounts
+     */
+    public void ArrayCopy(int elementIndex ,int distinctItemCount, T[] newKeys, int[] newCounts){
+        if (distinctItemCount == this.sizeDistinct())
+        {
+            System.arraycopy(this.keys, 0, newKeys, 0, distinctItemCount);
+            System.arraycopy(this.counts, 0, newCounts, 0, distinctItemCount);
+            newCounts[elementIndex]--;
+        }
+        else
+        {
+            System.arraycopy(this.keys, 0, newKeys, 0, elementIndex);
+            System.arraycopy(this.counts, 0, newCounts, 0, elementIndex);
+            System.arraycopy(this.keys, elementIndex + 1, newKeys, elementIndex, newKeys.length - elementIndex);
+            System.arraycopy(this.counts, elementIndex + 1, newCounts, elementIndex, newCounts.length - elementIndex);
+        }
+    }
+
+    /**
+     *
+     * @param elementIndex
+     * @return
+     */
+    public ImmutableArrayBag<T> distinctItem(int elementIndex){
+        int distinctItemCount = this.sizeDistinct() - (this.counts[elementIndex] == 1 ? 1 : 0);
+        T[] newKeys = (T[]) new Object[distinctItemCount];
+        int[] newCounts = new int[distinctItemCount];
+        ArrayCopy(elementIndex,distinctItemCount, newKeys, newCounts);
+        return new ImmutableArrayBag<>(newKeys, newCounts);
+    }
+
     @Override
     public ImmutableBag<T> newWithout(T element)
     {
         int elementIndex = ArrayIterate.detectIndexWith(this.keys, Predicates2.equal(), element);
         if (elementIndex > -1)
         {
-            int distinctItemCount = this.sizeDistinct() - (this.counts[elementIndex] == 1 ? 1 : 0);
-            T[] newKeys = (T[]) new Object[distinctItemCount];
-            int[] newCounts = new int[distinctItemCount];
-            if (distinctItemCount == this.sizeDistinct())
-            {
-                System.arraycopy(this.keys, 0, newKeys, 0, distinctItemCount);
-                System.arraycopy(this.counts, 0, newCounts, 0, distinctItemCount);
-                newCounts[elementIndex]--;
-            }
-            else
-            {
-                System.arraycopy(this.keys, 0, newKeys, 0, elementIndex);
-                System.arraycopy(this.counts, 0, newCounts, 0, elementIndex);
-                System.arraycopy(this.keys, elementIndex + 1, newKeys, elementIndex, newKeys.length - elementIndex);
-                System.arraycopy(this.counts, elementIndex + 1, newCounts, elementIndex, newCounts.length - elementIndex);
-            }
-            return new ImmutableArrayBag<>(newKeys, newCounts);
+            return distinctItem(elementIndex);
         }
         return this;
     }
@@ -282,6 +308,9 @@ public class ImmutableArrayBag<T>
         return ArrayIterate.getLast(this.keys);
     }
 
+    /**
+     * @return a booleab is the length is legal
+     */
     public boolean IsALegalLenght(){
         return this.counts.length != 1 || this.counts[0] > 1;
     }
@@ -291,7 +320,7 @@ public class ImmutableArrayBag<T>
     {
         if (this.IsALegalLenght())
         {
-            throw new IllegalStateException(this.count.length == 0 ? "Size must be 1 but was 0" : "Size must be 1 but was greater than 1");
+            throw new IllegalStateException(this.counts.length == 0 ? "Size must be 1 but was 0" : "Size must be 1 but was greater than 1");
         }
         return this.getFirst();
     }
@@ -330,6 +359,11 @@ public class ImmutableArrayBag<T>
         return this.flatCollect(function, HashBag.newBag()).toImmutable();
     }
 
+    /**
+     * Verify if the occurences is the same
+     * @param bag
+     * @return a boolean
+     */
     public boolean IsAnOccurencesOf(Bag bag){
         for (int i = 0; i < this.keys.length; i++)
         {
@@ -341,28 +375,28 @@ public class ImmutableArrayBag<T>
         return true;
     }
 
-
-    public boolean IsABagObject(){
-        Bag<?> bag = (Bag<?>) other;
-        if (this.size() != bag.size())
-        {
+    /**
+     * Verify id the object is a bag Object
+     * @return a boolean
+     */
+    public boolean IsABagObject(Bag<?> otherBag){
+        if (this.size() != otherBag.size()) {
             return false;
         }
-        return IsAnOccurencesOf(bag);
+        return IsAnOccurencesOf(otherBag);
     }
 
     @Override
     public boolean equals(Object other)
     {
-        if (this == other)
-        {
+        if (this == other) {
             return true;
         }
-        if (!(other instanceof Bag))
-        {
+        if (!(other instanceof Bag)) {
             return false;
         }
-        return IsABagObject();
+        Bag<?> otherBag = (Bag<?>) other;
+        return IsABagObject(otherBag);
     }
 
     @Override
