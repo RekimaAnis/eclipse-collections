@@ -55,6 +55,12 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
         return this.items.get(item);
     }
 
+    public int addOccurrencesAndReturn(T item, int occurrences)
+    {
+        addOccurrences(item, occurrences);
+        return occurrencesOf(item);
+    }
+
     @Override
     public boolean equals(Object other)
     {
@@ -223,7 +229,7 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
     }
 
     @Override
-    public boolean removeOccurrences(Object item, int occurrences)
+    public void removeOccurrences(Object item, int occurrences)
     {
         if (occurrences < 0)
         {
@@ -232,7 +238,7 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
 
         if (occurrences == 0)
         {
-            return false;
+            return;
         }
 
         int newValue = this.items.updateValue((T) item, 0, IntToIntFunctions.subtract(occurrences));
@@ -241,11 +247,16 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
         {
             this.size -= occurrences + newValue;
             this.items.remove(item);
-            return newValue + occurrences != 0;
         }
+        else{
+            this.size -= occurrences;
+        }
+    }
 
-        this.size -= occurrences;
-        return true;
+    public boolean removeOccurrencesAndReturnChange(T item, int occurences){
+        int originalOccurrences = this.occurrencesOf(item);
+        removeOccurrences(item, occurences);
+        return this.occurrencesOf(item) != originalOccurrences;
     }
 
     @Override
