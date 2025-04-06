@@ -294,9 +294,8 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
     }
 
     @Override
-    public boolean removeIf(Predicate<? super T> predicate)
+    public void removeIf(Predicate<? super T> predicate)
     {
-        boolean changed = false;
         for (Iterator<T> iterator = this.items.keySet().iterator(); iterator.hasNext(); )
         {
             T key = iterator.next();
@@ -304,16 +303,20 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
             {
                 this.size -= this.items.get(key);
                 iterator.remove();
-                changed = true;
             }
         }
-        return changed;
+    }
+
+    public boolean removeIfAndReturnChange(Predicate<? super T> predicate)
+    {
+        int oldSize = this.size;
+        removeIf(predicate);
+        return this.size != oldSize;
     }
 
     @Override
-    public <P> boolean removeIfWith(Predicate2<? super T, ? super P> predicate, P parameter)
+    public <P> void removeIfWith(Predicate2<? super T, ? super P> predicate, P parameter)
     {
-        boolean changed = false;
         for (Iterator<T> iterator = this.items.keySet().iterator(); iterator.hasNext(); )
         {
             T key = iterator.next();
@@ -321,16 +324,20 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
             {
                 this.size -= this.items.get(key);
                 iterator.remove();
-                changed = true;
             }
         }
-        return changed;
+    }
+
+    public <P> boolean removeIfWithAndReturnChange(Predicate2<? super T, ? super P> predicate, P parameter)
+    {
+        int oldSize = this.size;
+        removeIfWith(predicate, parameter);
+        return this.size != oldSize;
     }
 
     @Override
-    public boolean removeAllIterable(Iterable<?> iterable)
+    public void removeAllIterable(Iterable<?> iterable)
     {
-        int oldSize = this.size;
         if (iterable instanceof Bag)
         {
             Bag<?> source = (Bag<?>) iterable;
@@ -348,6 +355,12 @@ public abstract class AbstractHashBag<T> extends AbstractMutableBag<T>
                 this.size -= removed;
             }
         }
+    }
+
+    public boolean removeAllIterableAndReturnChange(Iterable<?> iterable)
+    {
+        int oldSize = this.size;
+        removeAllIterable(iterable);
         return this.size != oldSize;
     }
 
