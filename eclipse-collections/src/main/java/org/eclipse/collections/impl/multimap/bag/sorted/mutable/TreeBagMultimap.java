@@ -1,13 +1,3 @@
-/*
- * Copyright (c) 2022 Goldman Sachs and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v. 1.0 which accompany this distribution.
- * The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
- * http://www.eclipse.org/org/documents/edl-v10.php.
- */
-
 package org.eclipse.collections.impl.multimap.bag.sorted.mutable;
 
 import java.io.Externalizable;
@@ -16,30 +6,26 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Comparator;
 
-import org.eclipse.collections.api.RichIterable;
 import org.eclipse.collections.api.bag.sorted.ImmutableSortedBag;
 import org.eclipse.collections.api.bag.sorted.MutableSortedBag;
+import org.eclipse.collections.api.multimap.bag.sorted.MutableSortedBagMultimap;
+import org.eclipse.collections.api.multimap.sortedbag.ImmutableSortedBagMultimap;
+import org.eclipse.collections.api.multimap.sortedbag.SortedBagMultimap;
+import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.api.block.function.Function;
 import org.eclipse.collections.api.block.function.Function2;
 import org.eclipse.collections.api.block.predicate.Predicate2;
-import org.eclipse.collections.api.factory.Maps;
 import org.eclipse.collections.api.map.MutableMap;
-import org.eclipse.collections.api.multimap.Multimap;
-import org.eclipse.collections.api.multimap.bag.MutableBagMultimap;
-import org.eclipse.collections.api.multimap.sortedbag.ImmutableSortedBagMultimap;
-import org.eclipse.collections.api.multimap.sortedbag.MutableSortedBagMultimap;
-import org.eclipse.collections.api.multimap.sortedbag.SortedBagMultimap;
-import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.impl.bag.sorted.mutable.TreeBag;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
-import org.eclipse.collections.impl.multimap.AbstractMutableMultimap;
+import org.eclipse.collections.impl.multimap.AbstractMutableMultimapWithFactory;
 import org.eclipse.collections.impl.multimap.bag.HashBagMultimap;
-import org.eclipse.collections.impl.multimap.bag.sorted.immutable.ImmutableSortedBagMultimapImpl;
 import org.eclipse.collections.impl.multimap.list.FastListMultimap;
+import org.eclipse.collections.impl.multimap.sortedbag.ImmutableSortedBagMultimapImpl;
 import org.eclipse.collections.impl.utility.Iterate;
 
 public final class TreeBagMultimap<K, V>
-        extends AbstractMutableMultimap<K, V, MutableSortedBag<V>>
+        extends AbstractMutableMultimapWithFactory<K, V, MutableSortedBag<V>>
         implements MutableSortedBagMultimap<K, V>, Externalizable
 {
     private static final long serialVersionUID = 1L;
@@ -47,19 +33,21 @@ public final class TreeBagMultimap<K, V>
 
     public TreeBagMultimap()
     {
+        super();
         this.comparator = null;
     }
 
     public TreeBagMultimap(Comparator<? super V> comparator)
     {
+        super();
         this.comparator = comparator;
     }
 
-    public TreeBagMultimap(Multimap<? extends K, ? extends V> multimap)
+    public TreeBagMultimap(org.eclipse.collections.api.multimap.Multimap<? extends K, ? extends V> multimap)
     {
-        super(Math.max(multimap.keysView().size() * 2, 16));
+        super(multimap);
         this.comparator = multimap instanceof SortedBagMultimap<?, ?>
-                ? ((SortedBagMultimap<K, V>) multimap).comparator()
+                ? ((org.eclipse.collections.api.multimap.sortedbag.SortedBagMultimap<K, V>) multimap).comparator()
                 : null;
         this.putAll(multimap);
     }
@@ -81,7 +69,7 @@ public final class TreeBagMultimap<K, V>
         return new TreeBagMultimap<>();
     }
 
-    public static <K, V> TreeBagMultimap<K, V> newMultimap(Multimap<? extends K, ? extends V> multimap)
+    public static <K, V> TreeBagMultimap<K, V> newMultimap(org.eclipse.collections.api.multimap.Multimap<? extends K, ? extends V> multimap)
     {
         return new TreeBagMultimap<>(multimap);
     }
@@ -91,6 +79,7 @@ public final class TreeBagMultimap<K, V>
         return new TreeBagMultimap<>(comparator);
     }
 
+    @SafeVarargs
     public static <K, V> TreeBagMultimap<K, V> newMultimap(Pair<K, V>... pairs)
     {
         return new TreeBagMultimap<>(pairs);
@@ -104,7 +93,7 @@ public final class TreeBagMultimap<K, V>
     @Override
     protected MutableMap<K, MutableSortedBag<V>> createMap()
     {
-        return Maps.mutable.empty();
+        return org.eclipse.collections.api.factory.Maps.mutable.empty();
     }
 
     @Override
@@ -140,10 +129,9 @@ public final class TreeBagMultimap<K, V>
     @Override
     public ImmutableSortedBagMultimap<K, V> toImmutable()
     {
-        MutableMap<K, ImmutableSortedBag<V>> map = Maps.mutable.empty();
-
-        this.map.forEachKeyValue((key, bag) -> map.put(key, bag.toImmutable()));
-        return new ImmutableSortedBagMultimapImpl<>(map, this.comparator());
+        MutableMap<K, ImmutableSortedBag<V>> immutableMap = org.eclipse.collections.api.factory.Maps.mutable.empty();
+        this.map.forEachKeyValue((key, bag) -> immutableMap.put(key, bag.toImmutable()));
+        return new ImmutableSortedBagMultimapImpl<>(immutableMap, this.comparator());
     }
 
     @Override
@@ -179,13 +167,13 @@ public final class TreeBagMultimap<K, V>
     }
 
     @Override
-    public TreeBagMultimap<K, V> selectKeysMultiValues(Predicate2<? super K, ? super RichIterable<V>> predicate)
+    public TreeBagMultimap<K, V> selectKeysMultiValues(Predicate2<? super K, ? super org.eclipse.collections.api.RichIterable<V>> predicate)
     {
         return this.selectKeysMultiValues(predicate, this.newEmpty());
     }
 
     @Override
-    public TreeBagMultimap<K, V> rejectKeysMultiValues(Predicate2<? super K, ? super RichIterable<V>> predicate)
+    public TreeBagMultimap<K, V> rejectKeysMultiValues(Predicate2<? super K, ? super org.eclipse.collections.api.RichIterable<V>> predicate)
     {
         return this.rejectKeysMultiValues(predicate, this.newEmpty());
     }
@@ -197,7 +185,7 @@ public final class TreeBagMultimap<K, V>
     }
 
     @Override
-    public <K2, V2> HashBagMultimap<K2, V2> collectKeyMultiValues(Function<? super K, ? extends K2> keyFunction, Function<? super V, ? extends V2> valueFunction)
+    public <K2, V2> HashBagMultimap<K2, V2> collectKeyMultiValues(Function<? super K, ? extends K2> keyFunction,Function<? super V, ? extends V2> valueFunction)
     {
         return this.collectKeyMultiValues(keyFunction, valueFunction, HashBagMultimap.newMultimap());
     }
@@ -211,6 +199,6 @@ public final class TreeBagMultimap<K, V>
     @Override
     public MutableSortedBagMultimap<K, V> asSynchronized()
     {
-        return SynchronizedSortedBagMultimap.of(this);
+        return org.eclipse.collections.impl.multimap.sortedbag.SynchronizedSortedBagMultimap.of(this);
     }
 }

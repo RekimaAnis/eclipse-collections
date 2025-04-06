@@ -1,13 +1,3 @@
-/*
- * Copyright (c) 2022 Goldman Sachs and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v. 1.0 which accompany this distribution.
- * The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
- * http://www.eclipse.org/org/documents/edl-v10.php.
- */
-
 package org.eclipse.collections.impl.multimap.set.sorted;
 
 import java.io.Externalizable;
@@ -37,6 +27,7 @@ import org.eclipse.collections.impl.multimap.list.FastListMultimap;
 import org.eclipse.collections.impl.set.sorted.mutable.TreeSortedSet;
 import org.eclipse.collections.impl.utility.Iterate;
 
+
 public final class TreeSortedSetMultimap<K, V>
         extends AbstractMutableMultimap<K, V, MutableSortedSet<V>>
         implements MutableSortedSetMultimap<K, V>, Externalizable
@@ -63,6 +54,7 @@ public final class TreeSortedSetMultimap<K, V>
         this.putAll(multimap);
     }
 
+    @SafeVarargs
     public TreeSortedSetMultimap(Pair<K, V>... pairs)
     {
         super(pairs);
@@ -140,7 +132,6 @@ public final class TreeSortedSetMultimap<K, V>
     public ImmutableSortedSetMultimap<K, V> toImmutable()
     {
         MutableMap<K, ImmutableSortedSet<V>> map = Maps.mutable.empty();
-
         this.map.forEachKeyValue((key, set) -> map.put(key, set.toImmutable()));
         return new ImmutableSortedSetMultimapImpl<>(map, this.comparator());
     }
@@ -196,7 +187,8 @@ public final class TreeSortedSetMultimap<K, V>
     }
 
     @Override
-    public <K2, V2> HashBagMultimap<K2, V2> collectKeyMultiValues(Function<? super K, ? extends K2> keyFunction, Function<? super V, ? extends V2> valueFunction)
+    public <K2, V2> HashBagMultimap<K2, V2> collectKeyMultiValues(Function<? super K, ? extends K2> keyFunction, 
+                                                                     Function<? super V, ? extends V2> valueFunction)
     {
         return this.collectKeyMultiValues(keyFunction, valueFunction, HashBagMultimap.newMultimap());
     }
