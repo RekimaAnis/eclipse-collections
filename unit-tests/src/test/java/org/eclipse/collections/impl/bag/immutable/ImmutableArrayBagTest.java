@@ -252,4 +252,64 @@ public class ImmutableArrayBagTest extends ImmutableBagTestCase
         assertNotEquals(expected, actual);
         Verify.assertIterablesEqual(expected, actual);
     }
+
+        @Test
+    public void testNewBagWith() {
+        ImmutableArrayBag<String> bag = ImmutableArrayBag.newBagWith("a", "b", "a");
+        assertEquals(2, bag.sizeDistinct(), "Il doit y avoir 2 éléments distincts");
+        assertEquals(3, bag.size(), "La taille totale doit être 3");
+        assertEquals(2, bag.occurrencesOf("a"), "L'occurrence de 'a' doit être 2");
+        assertEquals(1, bag.occurrencesOf("b"), "L'occurrence de 'b' doit être 1");
+        assertEquals(0, bag.occurrencesOf("c"), "Aucune occurrence de 'c'");
+    }
+
+    @Test
+    public void testCopyFrom() {
+        HashBag<String> mutableBag = HashBag.newBag();
+        mutableBag.add("x");
+        mutableBag.add("y", 2);
+        mutableBag.add("x", 3);
+        ImmutableArrayBag<String> bag = ImmutableArrayBag.copyFrom(mutableBag);
+        assertEquals(2, bag.sizeDistinct(), "Il doit y avoir 2 éléments distincts");
+        assertEquals(6, bag.size(), "La taille totale doit être 6");
+        assertEquals(4, bag.occurrencesOf("x"), "L'occurrence de 'x' doit être 4");
+        assertEquals(2, bag.occurrencesOf("y"), "L'occurrence de 'y' doit être 2");
+    }
+
+    @Test
+    public void testIsALegalLenght() {
+        ImmutableArrayBag<String> bag1 = ImmutableArrayBag.newBagWith("a");
+        assertFalse(bag1.IsALegalLenght(), "Un bag avec un seul élément (occurrence 1) est considéré comme illégal");
+        HashBag<String> mutableBag = HashBag.newBag();
+        mutableBag.add("a", 2);
+        ImmutableArrayBag<String> bag2 = ImmutableArrayBag.copyFrom(mutableBag);
+        assertTrue(bag2.IsALegalLenght(), "Un bag avec un seul élément mais occurrence > 1 est légal");
+
+        ImmutableArrayBag<String> bag3 = ImmutableArrayBag.newBagWith("a", "b");
+        assertTrue(bag3.IsALegalLenght(), "Un bag avec plusieurs éléments distincts est légal");
+    }
+
+    @Test
+    public void testIsAnOccurencesOf() {
+        ImmutableArrayBag<String> immutableBag = ImmutableArrayBag.newBagWith("a", "b", "a");
+        HashBag<String> mutableBag = HashBag.newBag();
+        mutableBag.add("a", 2);
+        mutableBag.add("b");
+        assertTrue(immutableBag.IsAnOccurencesOf(mutableBag), "Les occurrences doivent être identiques");
+
+        mutableBag.remove("a");
+        assertFalse(immutableBag.IsAnOccurencesOf(mutableBag), "Les occurrences ne sont plus identiques");
+    }
+
+    @Test
+    public void testIsABagObject() {
+        ImmutableArrayBag<String> immutableBag = ImmutableArrayBag.newBagWith("a", "b", "a");
+        HashBag<String> mutableBag = HashBag.newBag();
+        mutableBag.add("a", 2);
+        mutableBag.add("b");
+        assertTrue(immutableBag.isABagObject(mutableBag), "Les bags doivent être identiques en termes d'occurrences");
+
+        mutableBag.add("b");
+        assertFalse(immutableBag.isABagObject(mutableBag), "Les bags ne sont plus identiques");
+    }
 }
